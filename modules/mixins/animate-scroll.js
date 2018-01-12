@@ -146,14 +146,14 @@ const animateScroll = (easing, options, timestamp) => {
 
   if (data.scrollX) {
     data.currentPositionX = data.startPositionX + Math.ceil(data.deltaLeft * data.percent);
-  else {
+  } else {
     data.currentPositionY = data.startPositionY + Math.ceil(data.deltaTop * data.percent);
   }
 
   if (data.containerElement && data.containerElement !== document && data.containerElement !== document.body) {
     if (data.scrollX) {
       data.containerElement.scrollLeft = data.currentPositionX;
-    else {
+    } else {
       data.containerElement.scrollTop = data.currentPositionY;
     }
   } else {
