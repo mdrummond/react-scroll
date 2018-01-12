@@ -1,8 +1,0 @@
-*.swp
-*.swo
-node_modules
-dist
-bower_components
-.idea/
-npm-debug.log
-build

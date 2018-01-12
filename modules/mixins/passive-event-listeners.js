@@ -1,25 +1,29 @@
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 /*
  * Tell the browser that the event listener won't prevent a scroll.
  * Allowing the browser to continue scrolling without having to
  * to wait for the listener to return.
  */
-export const addPassiveEventListener = (target, eventName, listener) => {
-  const supportsPassiveOption = (() => {
-    let supportsPassiveOption = false;
+var addPassiveEventListener = exports.addPassiveEventListener = function addPassiveEventListener(target, eventName, listener) {
+  var supportsPassiveOption = function () {
+    var supportsPassiveOption = false;
     try {
-      let opts = Object.defineProperty({}, 'passive', {
-        get: () => {
+      var opts = Object.defineProperty({}, 'passive', {
+        get: function get() {
           supportsPassiveOption = true;
         }
       });
       window.addEventListener('test', null, opts);
-    } catch (e) { }
+    } catch (e) {}
     return supportsPassiveOption;
-  })();
+  }();
   target.addEventListener(eventName, listener, supportsPassiveOption ? { passive: true } : false);
 };
 
-export const removePassiveEventListener = (target, eventName, listener) => {
+var removePassiveEventListener = exports.removePassiveEventListener = function removePassiveEventListener(target, eventName, listener) {
   target.removeEventListener(eventName, listener);
-}
-
+};

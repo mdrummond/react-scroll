@@ -1,14 +1,19 @@
+"use strict";
 
-const Events = {
-	registered : {},
-	scrollEvent : {
-		register: (evtName, callback) => {
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var Events = {
+	registered: {},
+	scrollEvent: {
+		register: function register(evtName, callback) {
 			Events.registered[evtName] = callback;
 		},
-		remove:(evtName) => {
+		remove: function remove(evtName) {
 			Events.registered[evtName] = null;
 		}
 	}
 };
 
-export default Events;
+exports.default = Events;

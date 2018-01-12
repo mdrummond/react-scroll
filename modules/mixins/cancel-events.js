@@ -1,6 +1,17 @@
-import { addPassiveEventListener, removePassiveEventListener } from './passive-event-listeners';
-const events = ['mousedown', 'mousewheel', 'touchmove', 'keydown']
+'use strict';
 
-export default {
-  subscribe : (cancelEvent) => (typeof document !== 'undefined') && events.forEach(event => addPassiveEventListener(document, event, cancelEvent)),
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _passiveEventListeners = require('./passive-event-listeners');
+
+var events = ['mousedown', 'mousewheel', 'touchmove', 'keydown'];
+
+exports.default = {
+  subscribe: function subscribe(cancelEvent) {
+    return typeof document !== 'undefined' && events.forEach(function (event) {
+      return (0, _passiveEventListeners.addPassiveEventListener)(document, event, cancelEvent);
+    });
+  }
 };

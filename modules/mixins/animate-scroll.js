@@ -1,20 +1,47 @@
-import utils from './utils';
-import smooth from './smooth';
-import cancelEvents from './cancel-events';
-import events from './scroll-events';
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _utils = require('./utils');
+
+var _utils2 = _interopRequireDefault(_utils);
+
+var _smooth = require('./smooth');
+
+var _smooth2 = _interopRequireDefault(_smooth);
+
+var _cancelEvents = require('./cancel-events');
+
+var _cancelEvents2 = _interopRequireDefault(_cancelEvents);
+
+var _scrollEvents = require('./scroll-events');
+
+var _scrollEvents2 = _interopRequireDefault(_scrollEvents);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /*
  * Gets the easing type from the smooth prop within options.
  */
-const getAnimationType = (options) => smooth[options.smooth] || smooth.defaultEasing;
+var getAnimationType = function getAnimationType(options) {
+  return _smooth2.default[options.smooth] || _smooth2.default.defaultEasing;
+};
 /*
  * Function helper
  */
-const functionWrapper = (value) => typeof value === 'function' ? value : function () { return value; };
+var functionWrapper = function functionWrapper(value) {
+  return typeof value === 'function' ? value : function () {
+    return value;
+  };
+};
 /*
  * Wraps window properties to allow server side rendering
  */
-const currentWindowProperties = () => {
+var currentWindowProperties = function currentWindowProperties() {
   if (typeof window !== 'undefined') {
     return window.requestAnimationFrame || window.webkitRequestAnimationFrame;
   }
@@ -23,111 +50,90 @@ const currentWindowProperties = () => {
 /*
  * Helper function to never extend 60fps on the webpage.
  */
-const requestAnimationFrameHelper = (() => {
-  return currentWindowProperties() ||
-    function (callback, element, delay) {
-      window.setTimeout(callback, delay || (1000 / 60), new Date().getTime());
-    };
-})();
+var requestAnimationFrameHelper = function () {
+  return currentWindowProperties() || function (callback, element, delay) {
+    window.setTimeout(callback, delay || 1000 / 60, new Date().getTime());
+  };
+}();
 
-const makeData = () => ({
-  currentPositionY : 0,
-  startPositionY : 0,
-  targetPositionY : 0,
-  scrollX: false,
-  currentPositionX: 0,
-  startPositionX: 0,
-  targetPositionX: 0,
-  progress : 0,
-  duration : 0,
-  cancel : false,
+var makeData = function makeData() {
+  return {
+    currentPositionY: 0,
+    startPositionY: 0,
+    targetPositionY: 0,
+    scrollX: false,
+    currentPositionX: 0,
+    startPositionX: 0,
+    targetPositionX: 0,
+    progress: 0,
+    duration: 0,
+    cancel: false,
 
-  target: null,
-  containerElement: null,
-  to: null,
-  start: null,
-  deltaTop: null,
-  percent: null,
-  delayTimeout: null
-});
+    target: null,
+    containerElement: null,
+    to: null,
+    start: null,
+    deltaTop: null,
+    percent: null,
+    delayTimeout: null
+  };
+};
 
-const currentPositionY = (options) => {
-  const containerElement = options.data.containerElement;
+var currentPositionY = function currentPositionY(options) {
+  var containerElement = options.data.containerElement;
   if (containerElement && containerElement !== document && containerElement !== document.body) {
     return containerElement.scrollTop;
   } else {
     var supportPageOffset = window.pageXOffset !== undefined;
-    var isCSS1Compat = ((document.compatMode || "") === "CSS1Compat");
-    return supportPageOffset ? window.pageYOffset : isCSS1Compat ?
-      document.documentElement.scrollTop : document.body.scrollTop;
+    var isCSS1Compat = (document.compatMode || "") === "CSS1Compat";
+    return supportPageOffset ? window.pageYOffset : isCSS1Compat ? document.documentElement.scrollTop : document.body.scrollTop;
   }
 };
 
-const currentPositionX = (options) => {
-  const containerElement = options.data.containerElement;
+var currentPositionX = function currentPositionX(options) {
+  var containerElement = options.data.containerElement;
   if (containerElement && containerElement !== document && containerElement !== document.body) {
     return containerElement.scrollLeft;
   } else {
     var supportPageOffset = window.pageXOffset !== undefined;
-    var isCSS1Compat = ((document.compatMode || "") === "CSS1Compat");
-    return supportPageOffset ? window.pageXOffset : isCSS1Compat ?
-      document.documentElement.scrollLeft : document.body.scrollLeft;
+    var isCSS1Compat = (document.compatMode || "") === "CSS1Compat";
+    return supportPageOffset ? window.pageXOffset : isCSS1Compat ? document.documentElement.scrollLeft : document.body.scrollLeft;
   }
 };
 
-const scrollContainerHeight = (options) => {
-  const containerElement = options.data.containerElement;
+var scrollContainerHeight = function scrollContainerHeight(options) {
+  var containerElement = options.data.containerElement;
   if (containerElement && containerElement !== document && containerElement !== document.body) {
-    return Math.max(
-      containerElement.scrollHeight,
-      containerElement.offsetHeight,
-      containerElement.clientHeight
-    );
+    return Math.max(containerElement.scrollHeight, containerElement.offsetHeight, containerElement.clientHeight);
   } else {
-    let body = document.body;
-    let html = document.documentElement;
+    var body = document.body;
+    var html = document.documentElement;
 
-    return Math.max(
-      body.scrollHeight,
-      body.offsetHeight,
-      html.clientHeight,
-      html.scrollHeight,
-      html.offsetHeight
-    );
+    return Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
   }
 };
 
-const scrollContainerWidth = (options) => {
-  const containerElement = options.data.containerElement;
+var scrollContainerWidth = function scrollContainerWidth(options) {
+  var containerElement = options.data.containerElement;
   if (containerElement && containerElement !== document && containerElement !== document.body) {
-    return Math.max(
-      containerElement.scrollWidth,
-      containerElement.offsetWidth,
-      containerElement.clientWidth
-    );
+    return Math.max(containerElement.scrollWidth, containerElement.offsetWidth, containerElement.clientWidth);
   } else {
-    let body = document.body;
-    let html = document.documentElement;
+    var body = document.body;
+    var html = document.documentElement;
 
-    return Math.max(
-      body.scrollWidth,
-      body.offsetWidth,
-      html.clientWidth,
-      html.scrollWidth,
-      html.offsetWidth
-    );
+    return Math.max(body.scrollWidth, body.offsetWidth, html.clientWidth, html.scrollWidth, html.offsetWidth);
   }
 };
 
-const animateScroll = (easing, options, timestamp) => {
-  const data = options.data;
+var animateScroll = function animateScroll(easing, options, timestamp) {
+  var data = options.data;
 
   // Cancel on specific events
   if (!options.ignoreCancelEvents && data.cancel) {
-    if (events.registered['end']) {
-      events.registered['end'](data.to, data.target, data.currentPositionY);
+    if (_scrollEvents2.default.registered['end']) {
+      _scrollEvents2.default.registered['end'](data.to, data.target, data.currentPositionY);
     }
-    return
+    return;
   };
 
   if (data.scrollX) {
@@ -142,7 +148,7 @@ const animateScroll = (easing, options, timestamp) => {
 
   data.progress = timestamp - data.start;
 
-  data.percent = (data.progress >= data.duration ? 1 : easing(data.progress / data.duration));
+  data.percent = data.progress >= data.duration ? 1 : easing(data.progress / data.duration);
 
   if (data.scrollX) {
     data.currentPositionX = data.startPositionX + Math.ceil(data.deltaLeft * data.percent);
@@ -159,44 +165,36 @@ const animateScroll = (easing, options, timestamp) => {
   } else {
     if (data.scrollX) {
       window.scrollTo(data.currentPositionX, 0);
-    }
-    else {
+    } else {
       window.scrollTo(0, data.currentPositionY);
     }
   }
 
   if (data.percent < 1) {
-    let easedAnimate = animateScroll.bind(null, easing, options);
+    var easedAnimate = animateScroll.bind(null, easing, options);
     requestAnimationFrameHelper.call(window, easedAnimate);
     return;
   }
 
-  if (events.registered['end']) {
+  if (_scrollEvents2.default.registered['end']) {
     if (data.scrollX) {
-      events.registered['end'](data.to, data.target, data.currentPositionX);
+      _scrollEvents2.default.registered['end'](data.to, data.target, data.currentPositionX);
     } else {
-      events.registered['end'](data.to, data.target, data.currentPositionY);
+      _scrollEvents2.default.registered['end'](data.to, data.target, data.currentPositionY);
     }
   }
-
 };
 
-const setContainer = (options) => {
-  options.data.containerElement = !options
-    ? null
-    : options.containerId
-      ? document.getElementById(options.containerId)
-      : options.container && options.container.nodeType
-        ? options.container
-        : document;
+var setContainer = function setContainer(options) {
+  options.data.containerElement = !options ? null : options.containerId ? document.getElementById(options.containerId) : options.container && options.container.nodeType ? options.container : document;
 };
 
-const animateTopScroll = (y, options, to, target) => {
+var animateTopScroll = function animateTopScroll(y, options, to, target) {
   options.data = options.data || makeData();
 
   window.clearTimeout(options.data.delayTimeout);
 
-  cancelEvents.subscribe(() => {
+  _cancelEvents2.default.subscribe(function () {
     options.data.cancel = true;
   });
 
@@ -207,9 +205,9 @@ const animateTopScroll = (y, options, to, target) => {
   options.data.startPositionY = currentPositionY(options);
   options.data.targetPositionY = options.absolute ? y : y + options.data.startPositionY;
 
-  if(options.data.startPositionY === options.data.targetPositionY) {
-    if (events.registered['end']) {
-      events.registered['end'](options.data.to, options.data.target, options.data.currentPositionY);
+  if (options.data.startPositionY === options.data.targetPositionY) {
+    if (_scrollEvents2.default.registered['end']) {
+      _scrollEvents2.default.registered['end'](options.data.to, options.data.target, options.data.currentPositionY);
     }
     return;
   }
@@ -221,26 +219,25 @@ const animateTopScroll = (y, options, to, target) => {
   options.data.to = to;
   options.data.target = target;
 
-  let easing = getAnimationType(options);
-  let easedAnimate = animateScroll.bind(null, easing, options);
+  var easing = getAnimationType(options);
+  var easedAnimate = animateScroll.bind(null, easing, options);
 
   if (options && options.delay > 0) {
-    options.data.delayTimeout = window.setTimeout(() => {
+    options.data.delayTimeout = window.setTimeout(function () {
       requestAnimationFrameHelper.call(window, easedAnimate);
     }, options.delay);
     return;
   }
 
   requestAnimationFrameHelper.call(window, easedAnimate);
-
 };
 
-const animateLeftScroll = (x, options, to, target) => {
+var animateLeftScroll = function animateLeftScroll(x, options, to, target) {
   options.data = options.data || makeData();
 
   window.clearTimeout(options.data.delayTimeout);
 
-  cancelEvents.subscribe(() => {
+  _cancelEvents2.default.subscribe(function () {
     options.data.cancel = true;
   });
 
@@ -251,9 +248,9 @@ const animateLeftScroll = (x, options, to, target) => {
   options.data.startPositionX = currentPositionX(options);
   options.data.targetPositionX = options.absolute ? x : x + options.data.startPositionX;
 
-  if(options.data.startPositionX === options.data.targetPositionX) {
-    if (events.registered['end']) {
-      events.registered['end'](options.data.to, options.data.target, options.data.currentPositionX);
+  if (options.data.startPositionX === options.data.targetPositionX) {
+    if (_scrollEvents2.default.registered['end']) {
+      _scrollEvents2.default.registered['end'](options.data.to, options.data.target, options.data.currentPositionX);
     }
     return;
   }
@@ -265,75 +262,74 @@ const animateLeftScroll = (x, options, to, target) => {
   options.data.to = to;
   options.data.target = target;
 
-  let easing = getAnimationType(options);
-  let easedAnimate = animateScroll.bind(null, easing, options);
+  var easing = getAnimationType(options);
+  var easedAnimate = animateScroll.bind(null, easing, options);
 
   if (options && options.delay > 0) {
-    options.data.delayTimeout = window.setTimeout(() => {
+    options.data.delayTimeout = window.setTimeout(function () {
       requestAnimationFrameHelper.call(window, easedAnimate);
     }, options.delay);
     return;
   }
 
   requestAnimationFrameHelper.call(window, easedAnimate);
-
 };
 
-const proceedOptions = (options) => {
-  options = Object.assign({}, options);
+var proceedOptions = function proceedOptions(options) {
+  options = _extends({}, options);
   options.data = options.data || makeData();
   options.absolute = true;
   return options;
-}
+};
 
-const scrollToTop = (options) => {
+var scrollToTop = function scrollToTop(options) {
   animateTopScroll(0, proceedOptions(options));
 };
 
-const scrollToLeft = (options) => {
+var scrollToLeft = function scrollToLeft(options) {
   animateLeftScroll(0, proceedOptions(options));
 };
 
-const scrollTo = (toY, options) => {
+var scrollTo = function scrollTo(toY, options) {
   if (options.data.scrollX) {
-    const toX = toY;
+    var toX = toY;
     animateLeftScroll(toX, proceedOptions(options));
   } else {
     animateTopScroll(toY, proceedOptions(options));
   }
 };
 
-const scrollToBottom = (options) => {
+var scrollToBottom = function scrollToBottom(options) {
   options = proceedOptions(options);
   setContainer(options);
   animateTopScroll(scrollContainerHeight(options), options);
 };
 
-const scrollToRight = (options) => {
+var scrollToRight = function scrollToRight(options) {
   options = proceedOptions(options);
   setContainer(options);
   animateLeftScroll(scrollContainerWidth(options), options);
 };
 
-const scrollMore = (toY, options) => {
+var scrollMore = function scrollMore(toY, options) {
   options = proceedOptions(options);
   setContainer(options);
   if (options.data.scrollX) {
-    const toX = toY;
+    var toX = toY;
     animateLeftScroll(currentPositionX(options) + toX, options);
   } else {
     animateTopScroll(currentPositionY(options) + toY, options);
   }
 };
 
-export default {
-  animateTopScroll,
-  animateLeftScroll,
-  getAnimationType,
-  scrollToTop,
-  scrollToLeft,
-  scrollToBottom,
-  scrollToRight,
-  scrollTo,
-  scrollMore,
+exports.default = {
+  animateTopScroll: animateTopScroll,
+  animateLeftScroll: animateLeftScroll,
+  getAnimationType: getAnimationType,
+  scrollToTop: scrollToTop,
+  scrollToLeft: scrollToLeft,
+  scrollToBottom: scrollToBottom,
+  scrollToRight: scrollToRight,
+  scrollTo: scrollTo,
+  scrollMore: scrollMore
 };

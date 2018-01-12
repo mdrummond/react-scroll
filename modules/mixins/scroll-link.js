@@ -1,56 +1,178 @@
-import React  from 'react';
-import ReactDOM from 'react-dom';
+'use strict';
 
-import utils from'./utils';
-import scrollSpy from'./scroll-spy';
-import defaultScroller from'./scroller';
-import PropTypes from'prop-types';
-import scrollHash from'./scroll-hash';
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 
-const protoTypes = {
-  to: PropTypes.string.isRequired,
-  scrollX: PropTypes.bool,
-  containerId: PropTypes.string,
-  container: PropTypes.object,
-  activeClass: PropTypes.string,
-  spy: PropTypes.bool,
-  smooth: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
-  offset: PropTypes.number,
-  delay: PropTypes.number,
-  isDynamic: PropTypes.bool,
-  onClick: PropTypes.func,
-  duration: PropTypes.oneOfType([PropTypes.number, PropTypes.func]),
-  absolute: PropTypes.bool,
-  onSetActive: PropTypes.func,
-  onSetInactive: PropTypes.func,
-  ignoreCancelEvents: PropTypes.bool,
-  hashSpy: PropTypes.bool
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = require('react-dom');
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
+var _utils = require('./utils');
+
+var _utils2 = _interopRequireDefault(_utils);
+
+var _scrollSpy = require('./scroll-spy');
+
+var _scrollSpy2 = _interopRequireDefault(_scrollSpy);
+
+var _scroller = require('./scroller');
+
+var _scroller2 = _interopRequireDefault(_scroller);
+
+var _propTypes = require('prop-types');
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
+var _scrollHash = require('./scroll-hash');
+
+var _scrollHash2 = _interopRequireDefault(_scrollHash);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var protoTypes = {
+  to: _propTypes2.default.string.isRequired,
+  scrollX: _propTypes2.default.bool,
+  containerId: _propTypes2.default.string,
+  container: _propTypes2.default.object,
+  activeClass: _propTypes2.default.string,
+  spy: _propTypes2.default.bool,
+  smooth: _propTypes2.default.oneOfType([_propTypes2.default.bool, _propTypes2.default.string]),
+  offset: _propTypes2.default.number,
+  delay: _propTypes2.default.number,
+  isDynamic: _propTypes2.default.bool,
+  onClick: _propTypes2.default.func,
+  duration: _propTypes2.default.oneOfType([_propTypes2.default.number, _propTypes2.default.func]),
+  absolute: _propTypes2.default.bool,
+  onSetActive: _propTypes2.default.func,
+  onSetInactive: _propTypes2.default.func,
+  ignoreCancelEvents: _propTypes2.default.bool,
+  hashSpy: _propTypes2.default.bool
 };
 
-export default (Component, customScroller) => {
+exports.default = function (Component, customScroller) {
 
-  const scroller = customScroller || defaultScroller;
+  var scroller = customScroller || _scroller2.default;
 
-  class Link extends React.PureComponent {
-    constructor(props) {
-      super(props);
-      this.state = {
+  var Link = function (_React$PureComponent) {
+    _inherits(Link, _React$PureComponent);
+
+    function Link(props) {
+      _classCallCheck(this, Link);
+
+      var _this = _possibleConstructorReturn(this, (Link.__proto__ || Object.getPrototypeOf(Link)).call(this, props));
+
+      _initialiseProps.call(_this);
+
+      _this.state = {
         active: false
       };
+      return _this;
     }
 
-    scrollTo = (to, props) => {
-      scroller.scrollTo(to, Object.assign({}, this.state, props));
-    }
+    _createClass(Link, [{
+      key: 'getScrollSpyContainer',
+      value: function getScrollSpyContainer() {
+        var containerId = this.props.containerId;
+        var container = this.props.container;
 
-    handleClick = (event) => {
+        if (containerId && !container) {
+          return document.getElementById(containerId);
+        }
+
+        if (container && container.nodeType) {
+          return container;
+        }
+
+        return document;
+      }
+    }, {
+      key: 'componentDidMount',
+      value: function componentDidMount() {
+        if (this.props.spy || this.props.hashSpy) {
+          var scrollSpyContainer = this.getScrollSpyContainer();
+
+          if (!_scrollSpy2.default.isMounted(scrollSpyContainer)) {
+            _scrollSpy2.default.mount(scrollSpyContainer);
+          }
+
+          if (this.props.hashSpy) {
+            if (!_scrollHash2.default.isMounted()) {
+              _scrollHash2.default.mount(scroller);
+            }
+            _scrollHash2.default.mapContainer(this.props.to, scrollSpyContainer);
+          }
+
+          _scrollSpy2.default.addSpyHandler(this.spyHandler, scrollSpyContainer);
+
+          this.setState({
+            container: scrollSpyContainer
+          });
+        }
+      }
+    }, {
+      key: 'componentWillUnmount',
+      value: function componentWillUnmount() {
+        _scrollSpy2.default.unmount(this.stateHandler, this.spyHandler);
+      }
+    }, {
+      key: 'render',
+      value: function render() {
+        var className = "";
+
+        if (this.state && this.state.active) {
+          className = ((this.props.className || "") + " " + (this.props.activeClass || "active")).trim();
+        } else {
+          className = this.props.className;
+        }
+
+        var props = _extends({}, this.props);
+
+        for (var prop in protoTypes) {
+          if (props.hasOwnProperty(prop)) {
+            delete props[prop];
+          }
+        }
+
+        props.className = className;
+        props.onClick = this.handleClick;
+
+        return _react2.default.createElement(Component, props);
+      }
+    }]);
+
+    return Link;
+  }(_react2.default.PureComponent);
+
+  var _initialiseProps = function _initialiseProps() {
+    var _this2 = this;
+
+    this.scrollTo = function (to, props) {
+      scroller.scrollTo(to, _extends({}, _this2.state, props));
+    };
+
+    this.handleClick = function (event) {
 
       /*
        * give the posibility to override onClick
        */
 
-      if (this.props.onClick) {
-        this.props.onClick(event);
+      if (_this2.props.onClick) {
+        _this2.props.onClick(event);
       }
 
       /*
@@ -63,31 +185,30 @@ export default (Component, customScroller) => {
       /*
        * do the magic!
        */
-      this.scrollTo(this.props.to, this.props);
+      _this2.scrollTo(_this2.props.to, _this2.props);
+    };
 
-    }
+    this.spyHandler = function (y) {
 
-    spyHandler = (y) => {
+      var scrollSpyContainer = _this2.getScrollSpyContainer();
 
-      let scrollSpyContainer = this.getScrollSpyContainer();
-
-      if (scrollHash.isMounted() && !scrollHash.isInitialized()) {
+      if (_scrollHash2.default.isMounted() && !_scrollHash2.default.isInitialized()) {
         return;
       }
 
-      let to = this.props.to;
-      let x = y;
-      let scrollX = this.props.scrollX;
-      let element = null;
-      let elemTopBound = 0;
-      let elemBottomBound = 0;
-      let containerTop = 0;
-      let elemLeftBound = 0;
-      let elemRightBound = 0;
-      let containerRight = 0;
+      var to = _this2.props.to;
+      var x = y;
+      var scrollX = _this2.props.scrollX;
+      var element = null;
+      var elemTopBound = 0;
+      var elemBottomBound = 0;
+      var containerTop = 0;
+      var elemLeftBound = 0;
+      var elemRightBound = 0;
+      var containerRight = 0;
 
       if (scrollSpyContainer.getBoundingClientRect) {
-        let containerCords = scrollSpyContainer.getBoundingClientRect();
+        var containerCords = scrollSpyContainer.getBoundingClientRect();
         if (scrollX) {
           containerLeft = containerCords.left;
         } else {
@@ -95,127 +216,66 @@ export default (Component, customScroller) => {
         }
       }
 
-      if (!element || this.props.isDynamic) {
+      if (!element || _this2.props.isDynamic) {
         element = scroller.get(to);
-        if (!element) { return; }
+        if (!element) {
+          return;
+        }
 
-        let cords = element.getBoundingClientRect();
+        var cords = element.getBoundingClientRect();
         if (scrollX) {
-          elemLeftBound = (cords.left - containerLeft + x);
+          elemLeftBound = cords.left - containerLeft + x;
           elemRightBound = elemLeftBound + cords.width;
         } else {
-          elemTopBound = (cords.top - containerTop + y);
+          elemTopBound = cords.top - containerTop + y;
           elemBottomBound = elemTopBound + cords.height;
         }
       }
 
       if (scrollX) {
-        let offsetX = x - this.props.offset;
-        let isInside = (offsetX >= Math.floor(elemLeftBound) && offsetX < Math.floor(elemRightBound));
-        let isOutside = (offsetX < Math.floor(elemLeftBound) || offsetX >= Math.floor(elemRightBound));
+        var offsetX = x - _this2.props.offset;
+        var _isInside = offsetX >= Math.floor(elemLeftBound) && offsetX < Math.floor(elemRightBound);
+        var _isOutside = offsetX < Math.floor(elemLeftBound) || offsetX >= Math.floor(elemRightBound);
       } else {
-        let offsetY = y - this.props.offset;
-        let isInside = (offsetY >= Math.floor(elemTopBound) && offsetY < Math.floor(elemBottomBound));
-        let isOutside = (offsetY < Math.floor(elemTopBound) || offsetY >= Math.floor(elemBottomBound));
+        var offsetY = y - _this2.props.offset;
+        var _isInside2 = offsetY >= Math.floor(elemTopBound) && offsetY < Math.floor(elemBottomBound);
+        var _isOutside2 = offsetY < Math.floor(elemTopBound) || offsetY >= Math.floor(elemBottomBound);
       }
-      let activeLink = scroller.getActiveLink();
+      var activeLink = scroller.getActiveLink();
 
       if (isOutside) {
         if (to === activeLink) {
           scroller.setActiveLink(void 0);
         }
 
-        if (this.props.hashSpy && scrollHash.getHash() === to) {
-          scrollHash.changeHash();
+        if (_this2.props.hashSpy && _scrollHash2.default.getHash() === to) {
+          _scrollHash2.default.changeHash();
         }
 
-        if (this.props.spy && this.state.active) {
-          this.setState({ active: false });
-          this.props.onSetInactive && this.props.onSetInactive(to, element);
+        if (_this2.props.spy && _this2.state.active) {
+          _this2.setState({ active: false });
+          _this2.props.onSetInactive && _this2.props.onSetInactive(to, element);
         }
-
       }
 
       if (isInside && activeLink !== to) {
         scroller.setActiveLink(to);
 
-        this.props.hashSpy && scrollHash.changeHash(to);
+        _this2.props.hashSpy && _scrollHash2.default.changeHash(to);
 
-        if (this.props.spy) {
-          this.setState({ active: true });
-          this.props.onSetActive && this.props.onSetActive(to, element);
+        if (_this2.props.spy) {
+          _this2.setState({ active: true });
+          _this2.props.onSetActive && _this2.props.onSetActive(to, element);
         }
       }
-    }
-
-    getScrollSpyContainer() {
-      let containerId = this.props.containerId;
-      let container = this.props.container;
-
-      if (containerId && !container) {
-        return document.getElementById(containerId);
-      }
-
-      if (container && container.nodeType) {
-        return container;
-      }
-
-      return document;
-    }
-
-    componentDidMount() {
-      if (this.props.spy || this.props.hashSpy) {
-        let scrollSpyContainer = this.getScrollSpyContainer();
-
-        if (!scrollSpy.isMounted(scrollSpyContainer)) {
-          scrollSpy.mount(scrollSpyContainer);
-        }
-
-        if (this.props.hashSpy) {
-          if (!scrollHash.isMounted()) {
-            scrollHash.mount(scroller);
-          }
-          scrollHash.mapContainer(this.props.to, scrollSpyContainer);
-        }
-
-        scrollSpy.addSpyHandler(this.spyHandler, scrollSpyContainer);
-
-        this.setState({
-          container: scrollSpyContainer
-        });
-
-      }
-    }
-    componentWillUnmount() {
-      scrollSpy.unmount(this.stateHandler, this.spyHandler);
-    }
-    render() {
-      var className = "";
-
-      if (this.state && this.state.active) {
-        className = ((this.props.className || "") + " " + (this.props.activeClass || "active")).trim();
-      } else {
-        className = this.props.className;
-      }
-
-      let props = Object.assign({}, this.props);
-
-      for (var prop in protoTypes) {
-        if (props.hasOwnProperty(prop)) {
-          delete props[prop];
-        }
-      }
-
-      props.className = className;
-      props.onClick = this.handleClick;
-
-      return React.createElement(Component, props);
-    }
+    };
   };
+
+  ;
 
   Link.propTypes = protoTypes;
 
   Link.defaultProps = { offset: 0 };
 
   return Link;
-}
+};
