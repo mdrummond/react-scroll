@@ -9,6 +9,7 @@ import scrollHash from'./scroll-hash';
 
 const protoTypes = {
   to: PropTypes.string.isRequired,
+  scrollX: PropTypes.bool,
   containerId: PropTypes.string,
   container: PropTypes.object,
   activeClass: PropTypes.string,

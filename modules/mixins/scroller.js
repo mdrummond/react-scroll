@@ -54,16 +54,28 @@ export default {
 
       props.absolute = true;
 
-      let scrollOffset = utils.scrollOffset(containerElement, target) + (props.offset || 0);
+      if (props.scrollX) {
+        let scrollOffset = utils.scrollOffsetX(containerElement, target) + (props.offset || 0);
+      } else {
+        let scrollOffset = utils.scrollOffset(containerElement, target) + (props.offset || 0);
+      }
 
       /*
        * if animate is not provided just scroll into the view
        */
       if(!props.smooth) {
         if (containerElement === document) {
-          window.scrollTo(0, scrollOffset);
+          if (props.scrollX) {
+            window.scrollTo(scrollOffset, 0);
+          } else {
+            window.scrollTo(0, scrollOffset);
+          }
         } else {
-          containerElement.scrollTop = scrollOffset;
+          if (props.scrollX) {
+            containerElement.scrollLeft = scrollOffset;
+          } else {
+            containerElement.scrollTop = scrollOffset;
+          }
         }
 
         if(events.registered['end']) {
@@ -77,6 +89,10 @@ export default {
        * Animate scrolling
        */
 
-      animateScroll.animateTopScroll(scrollOffset, props, to, target);
+       if (props.scrollX) {
+         animateScroll.animateLeftScroll(scrollOffset, props, to, target);
+       } else {
+         animateScroll.animateTopScroll(scrollOffset, props, to, target);
+       }
   }
 };

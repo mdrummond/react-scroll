@@ -34,6 +34,10 @@ const makeData = () => ({
   currentPositionY : 0,
   startPositionY : 0,
   targetPositionY : 0,
+  scrollX: false,
+  currentPositionX: 0,
+  startPositionX: 0,
+  targetPositionX: 0,
   progress : 0,
   duration : 0,
   cancel : false,
@@ -59,6 +63,18 @@ const currentPositionY = (options) => {
   }
 };
 
+const currentPositionX = (options) => {
+  const containerElement = options.data.containerElement;
+  if (containerElement && containerElement !== document && containerElement !== document.body) {
+    return containerElement.scrollLeft;
+  } else {
+    var supportPageOffset = window.pageXOffset !== undefined;
+    var isCSS1Compat = ((document.compatMode || "") === "CSS1Compat");
+    return supportPageOffset ? window.pageXOffset : isCSS1Compat ?
+      document.documentElement.scrollLeft : document.body.scrollLeft;
+  }
+};
+
 const scrollContainerHeight = (options) => {
   const containerElement = options.data.containerElement;
   if (containerElement && containerElement !== document && containerElement !== document.body) {
@@ -81,6 +97,28 @@ const scrollContainerHeight = (options) => {
   }
 };
 
+const scrollContainerWidth = (options) => {
+  const containerElement = options.data.containerElement;
+  if (containerElement && containerElement !== document && containerElement !== document.body) {
+    return Math.max(
+      containerElement.scrollWidth,
+      containerElement.offsetWidth,
+      containerElement.clientWidth
+    );
+  } else {
+    let body = document.body;
+    let html = document.documentElement;
+
+    return Math.max(
+      body.scrollWidth,
+      body.offsetWidth,
+      html.clientWidth,
+      html.scrollWidth,
+      html.offsetWidth
+    );
+  }
+};
+
 const animateScroll = (easing, options, timestamp) => {
   const data = options.data;
 
@@ -92,7 +130,11 @@ const animateScroll = (easing, options, timestamp) => {
     return
   };
 
-  data.deltaTop = Math.round(data.targetPositionY - data.startPositionY);
+  if (data.scrollX) {
+    data.deltaLeft = Math.round(data.targetPositionX - data.startPositionX);
+  } else {
+    data.deltaTop = Math.round(data.targetPositionY - data.startPositionY);
+  }
 
   if (data.start === null) {
     data.start = timestamp;
@@ -102,12 +144,25 @@ const animateScroll = (easing, options, timestamp) => {
 
   data.percent = (data.progress >= data.duration ? 1 : easing(data.progress / data.duration));
 
-  data.currentPositionY = data.startPositionY + Math.ceil(data.deltaTop * data.percent);
+  if (data.scrollX) {
+    data.currentPositionX = data.startPositionX + Math.ceil(data.deltaLeft * data.percent);
+  else {
+    data.currentPositionY = data.startPositionY + Math.ceil(data.deltaTop * data.percent);
+  }
 
   if (data.containerElement && data.containerElement !== document && data.containerElement !== document.body) {
-    data.containerElement.scrollTop = data.currentPositionY;
+    if (data.scrollX) {
+      data.containerElement.scrollLeft = data.currentPositionX;
+    else {
+      data.containerElement.scrollTop = data.currentPositionY;
+    }
   } else {
-    window.scrollTo(0, data.currentPositionY);
+    if (data.scrollX) {
+      window.scrollTo(data.currentPositionX, 0);
+    }
+    else {
+      window.scrollTo(0, data.currentPositionY);
+    }
   }
 
   if (data.percent < 1) {
@@ -117,7 +172,11 @@ const animateScroll = (easing, options, timestamp) => {
   }
 
   if (events.registered['end']) {
-    events.registered['end'](data.to, data.target, data.currentPositionY);
+    if (data.scrollX) {
+      events.registered['end'](data.to, data.target, data.currentPositionX);
+    } else {
+      events.registered['end'](data.to, data.target, data.currentPositionY);
+    }
   }
 
 };
@@ -176,6 +235,50 @@ const animateTopScroll = (y, options, to, target) => {
 
 };
 
+const animateLeftScroll = (x, options, to, target) => {
+  options.data = options.data || makeData();
+
+  window.clearTimeout(options.data.delayTimeout);
+
+  cancelEvents.subscribe(() => {
+    options.data.cancel = true;
+  });
+
+  setContainer(options);
+
+  options.data.start = null;
+  options.data.cancel = false;
+  options.data.startPositionX = currentPositionX(options);
+  options.data.targetPositionX = options.absolute ? x : x + options.data.startPositionX;
+
+  if(options.data.startPositionX === options.data.targetPositionX) {
+    if (events.registered['end']) {
+      events.registered['end'](options.data.to, options.data.target, options.data.currentPositionX);
+    }
+    return;
+  }
+
+  options.data.deltaLeft = Math.round(options.data.targetPositionX - options.data.startPositionX);
+
+  options.data.duration = functionWrapper(options.duration)(options.data.deltaLeft);
+  options.data.duration = isNaN(parseFloat(options.data.duration)) ? 1000 : parseFloat(options.data.duration);
+  options.data.to = to;
+  options.data.target = target;
+
+  let easing = getAnimationType(options);
+  let easedAnimate = animateScroll.bind(null, easing, options);
+
+  if (options && options.delay > 0) {
+    options.data.delayTimeout = window.setTimeout(() => {
+      requestAnimationFrameHelper.call(window, easedAnimate);
+    }, options.delay);
+    return;
+  }
+
+  requestAnimationFrameHelper.call(window, easedAnimate);
+
+};
+
 const proceedOptions = (options) => {
   options = Object.assign({}, options);
   options.data = options.data || makeData();
@@ -187,8 +290,17 @@ const scrollToTop = (options) => {
   animateTopScroll(0, proceedOptions(options));
 };
 
+const scrollToLeft = (options) => {
+  animateLeftScroll(0, proceedOptions(options));
+};
+
 const scrollTo = (toY, options) => {
-  animateTopScroll(toY, proceedOptions(options));
+  if (options.data.scrollX) {
+    const toX = toY;
+    animateLeftScroll(toX, proceedOptions(options));
+  } else {
+    animateTopScroll(toY, proceedOptions(options));
+  }
 };
 
 const scrollToBottom = (options) => {
@@ -197,17 +309,31 @@ const scrollToBottom = (options) => {
   animateTopScroll(scrollContainerHeight(options), options);
 };
 
+const scrollToRight = (options) => {
+  options = proceedOptions(options);
+  setContainer(options);
+  animateLeftScroll(scrollContainerWidth(options), options);
+};
+
 const scrollMore = (toY, options) => {
   options = proceedOptions(options);
   setContainer(options);
-  animateTopScroll(currentPositionY(options) + toY, options);
+  if (options.data.scrollX) {
+    const toX = toY;
+    animateLeftScroll(currentPositionX(options) + toX, options);
+  } else {
+    animateTopScroll(currentPositionY(options) + toY, options);
+  }
 };
 
 export default {
   animateTopScroll,
+  animateLeftScroll,
   getAnimationType,
   scrollToTop,
+  scrollToLeft,
   scrollToBottom,
+  scrollToRight,
   scrollTo,
   scrollMore,
 };

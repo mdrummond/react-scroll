@@ -28,7 +28,7 @@ const scrollSpy = {
       scrollSpy.scrollSpyContainers.push(scrollSpyContainer);
       addPassiveEventListener(scrollSpyContainer, 'scroll', eventHandler);
     }
-    
+
   },
 
   isMounted(scrollSpyContainer) {
@@ -46,6 +46,17 @@ const scrollSpy = {
     }
   },
 
+  currentPositionX(scrollSpyContainer) {
+    if(scrollSpyContainer === document) {
+      let supportPageOffset = window.pageXOffset !== undefined;
+      let isCSS1Compat = ((document.compatMode || "") === "CSS1Compat");
+      return supportPageOffset ? window.pageYOffset : isCSS1Compat ?
+      document.documentElement.scrollLeft : document.body.scrollLeft;
+    } else {
+      return scrollSpyContainer.scrollLeft;
+    }
+  },
+
   scrollHandler(scrollSpyContainer) {
     let callbacks = scrollSpy.scrollSpyContainers[scrollSpy.scrollSpyContainers.indexOf(scrollSpyContainer)].spyCallbacks || [];
     callbacks.forEach(c => c(scrollSpy.currentPositionY(scrollSpyContainer)))
@@ -57,7 +68,7 @@ const scrollSpy = {
 
   addSpyHandler(handler, scrollSpyContainer) {
     let container = scrollSpy.scrollSpyContainers[scrollSpy.scrollSpyContainers.indexOf(scrollSpyContainer)];
-    
+
     if(!container.spyCallbacks) {
       container.spyCallbacks = [];
     }

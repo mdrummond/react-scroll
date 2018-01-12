@@ -13,6 +13,7 @@ const scrollHash = require('./scroll-hash');
 
 const protoTypes = {
   to: PropTypes.string.isRequired,
+  scrollX: PropTypes.bool,
   containerId: PropTypes.string,
   container: PropTypes.object,
   activeClass: PropTypes.string,
@@ -92,14 +93,23 @@ const Helpers = {
         }
 
         let to = this.props.to;
+        let scrollX = this.props.scrollX;
+        let x = y;
         let element = null;
         let elemTopBound = 0;
         let elemBottomBound = 0;
         let containerTop = 0;
+        let elemLeftBound = 0;
+        let elemRightBound = 0;
+        let containerLeft = 0;
 
         if (scrollSpyContainer.getBoundingClientRect) {
           let containerCords = scrollSpyContainer.getBoundingClientRect();
-          containerTop = containerCords.top;
+          if (scrollX) {
+            containerLeft = containerCords.left;
+          } else {
+            containerTop = containerCords.top;
+          }
         }
 
         if (!element || this.props.isDynamic) {
@@ -107,13 +117,24 @@ const Helpers = {
           if (!element) { return; }
 
           let cords = element.getBoundingClientRect();
-          elemTopBound = (cords.top - containerTop + y);
-          elemBottomBound = elemTopBound + cords.height;
+          if (scrollX) {
+            elemLeftBound = (cords.left- containerLeft + x);
+            elemRightBound = elemLeftBound + cords.width;
+          } else {
+            elemTopBound = (cords.top - containerTop + y);
+            elemBottomBound = elemTopBound + cords.height;
+          }
         }
 
-        let offsetY = y - this.props.offset;
-        let isInside = (offsetY >= Math.floor(elemTopBound) && offsetY < Math.floor(elemBottomBound));
-        let isOutside = (offsetY < Math.floor(elemTopBound) || offsetY >= Math.floor(elemBottomBound));
+        if (scrollX) {
+          let offsetX = x - this.props.offset;
+          let isInside = (offsetX >= Math.floor(elemLeftBound) && offsetX < Math.floor(elemRightBound));
+          let isOutside = (offsetX < Math.floor(elemLeftBound) || offsetX >= Math.floor(elemRightBound));
+        } else {
+          let offsetY = y - this.props.offset;
+          let isInside = (offsetY >= Math.floor(elemTopBound) && offsetY < Math.floor(elemBottomBound));
+          let isOutside = (offsetY < Math.floor(elemTopBound) || offsetY >= Math.floor(elemBottomBound));
+        }
         let activeLink = scroller.getActiveLink();
 
         if (isOutside) {
