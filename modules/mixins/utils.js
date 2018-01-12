@@ -1,37 +1,43 @@
-const pushHash = (hash) => {
-  hash = hash
-    ? hash.indexOf('#') === 0
-      ? hash
-      : '#' + hash
-    : '';
+'use strict';
 
-  if(history.pushState) {
-    let loc = window.location;
-    history.pushState(null, null, hash
-      ? hash
-      // remove hash
-      : loc.pathname + loc.search);
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var pushHash = function pushHash(hash) {
+  hash = hash ? hash.indexOf('#') === 0 ? hash : '#' + hash : '';
+
+  if (history.pushState) {
+    var loc = window.location;
+    history.pushState(null, null, hash ? hash
+    // remove hash
+    : loc.pathname + loc.search);
   } else {
     location.hash = hash;
   }
-}
+};
 
-const  getHash = () => {
+var getHash = function getHash() {
   return window.location.hash.replace(/^#/, '');
-}
+};
 
-const filterElementInContainer = (container) => (element) => container.contains ? container != element && container.contains(element) : !!(container.compareDocumentPosition(element) & 16)
+var filterElementInContainer = function filterElementInContainer(container) {
+  return function (element) {
+    return container.contains ? container != element && container.contains(element) : !!(container.compareDocumentPosition(element) & 16);
+  };
+};
 
-const scrollOffset = (c, t) => c === document ?
-      t.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) : getComputedStyle(c).position === "relative" ? t.offsetTop : (t.offsetTop - c.offsetTop)
+var scrollOffset = function scrollOffset(c, t) {
+  return c === document ? t.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) : getComputedStyle(c).position === "relative" ? t.offsetTop : t.offsetTop - c.offsetTop;
+};
 
-const scrollOffsetX = (c, t) => c === document ?
-      t.getBoundingClientRect().top + (window.scrollX || window.pageXOffset) : getComputedStyle(c).position === "relative" ? t.offsetLeft : (t.offsetLeft - c.offsetLeft)
+var scrollOffsetX = function scrollOffsetX(c, t) {
+  return c === document ? t.getBoundingClientRect().top + (window.scrollX || window.pageXOffset) : getComputedStyle(c).position === "relative" ? t.offsetLeft : t.offsetLeft - c.offsetLeft;
+};
 
-export default {
-  pushHash,
-  getHash,
-  filterElementInContainer,
-  scrollOffset,
-  scrollOffsetX
+exports.default = {
+  pushHash: pushHash,
+  getHash: getHash,
+  filterElementInContainer: filterElementInContainer,
+  scrollOffset: scrollOffset,
+  scrollOffsetX: scrollOffsetX
 };

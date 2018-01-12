@@ -2,16 +2,26 @@
 
 /* DEPRECATED */
 
-const React = require('react');
-const ReactDOM = require('react-dom');
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-const utils = require('./utils');
-const scrollSpy = require('./scroll-spy');
-const defaultScroller = require('./scroller');
-const PropTypes = require('prop-types');
-const scrollHash = require('./scroll-hash');
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-const protoTypes = {
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var React = require('react');
+var ReactDOM = require('react-dom');
+
+var utils = require('./utils');
+var scrollSpy = require('./scroll-spy');
+var defaultScroller = require('./scroller');
+var PropTypes = require('prop-types');
+var scrollHash = require('./scroll-hash');
+
+var protoTypes = {
   to: PropTypes.string.isRequired,
   scrollX: PropTypes.bool,
   containerId: PropTypes.string,
@@ -31,33 +41,122 @@ const protoTypes = {
   hashSpy: PropTypes.bool
 };
 
-const Helpers = {
-  Scroll(Component, customScroller) {
+var Helpers = {
+  Scroll: function Scroll(Component, customScroller) {
 
     console.warn("Helpers.Scroll is deprecated since v1.7.0");
 
-    const scroller = customScroller || defaultScroller;
+    var scroller = customScroller || defaultScroller;
 
-    class Scroll extends React.Component {
-      constructor(props) {
-        super(props);
-        this.state = {
+    var Scroll = function (_React$Component) {
+      _inherits(Scroll, _React$Component);
+
+      function Scroll(props) {
+        _classCallCheck(this, Scroll);
+
+        var _this = _possibleConstructorReturn(this, (Scroll.__proto__ || Object.getPrototypeOf(Scroll)).call(this, props));
+
+        _initialiseProps.call(_this);
+
+        _this.state = {
           active: false
         };
+        return _this;
       }
 
-      scrollTo = (to, props) => {
-        scroller.scrollTo(to, Object.assign({}, this.state, props));
-      }
+      _createClass(Scroll, [{
+        key: 'getScrollSpyContainer',
+        value: function getScrollSpyContainer() {
+          var containerId = this.props.containerId;
+          var container = this.props.container;
 
-      handleClick = (event) => {
+          if (containerId) {
+            return document.getElementById(containerId);
+          }
+
+          if (container && container.nodeType) {
+            return container;
+          }
+
+          return document;
+        }
+      }, {
+        key: 'componentDidMount',
+        value: function componentDidMount() {
+          if (this.props.spy || this.props.hashSpy) {
+            var scrollSpyContainer = this.getScrollSpyContainer();
+
+            if (!scrollSpy.isMounted(scrollSpyContainer)) {
+              scrollSpy.mount(scrollSpyContainer);
+            }
+
+            if (this.props.hashSpy) {
+              if (!scrollHash.isMounted()) {
+                scrollHash.mount(scroller);
+              }
+              scrollHash.mapContainer(this.props.to, scrollSpyContainer);
+            }
+
+            if (this.props.spy) {
+              scrollSpy.addStateHandler(this.stateHandler);
+            }
+
+            scrollSpy.addSpyHandler(this.spyHandler, scrollSpyContainer);
+
+            this.setState({
+              container: scrollSpyContainer
+            });
+          }
+        }
+      }, {
+        key: 'componentWillUnmount',
+        value: function componentWillUnmount() {
+          scrollSpy.unmount(this.stateHandler, this.spyHandler);
+        }
+      }, {
+        key: 'render',
+        value: function render() {
+          var className = "";
+
+          if (this.state && this.state.active) {
+            className = ((this.props.className || "") + " " + (this.props.activeClass || "active")).trim();
+          } else {
+            className = this.props.className;
+          }
+
+          var props = _extends({}, this.props);
+
+          for (var prop in protoTypes) {
+            if (props.hasOwnProperty(prop)) {
+              delete props[prop];
+            }
+          }
+
+          props.className = className;
+          props.onClick = this.handleClick;
+
+          return React.createElement(Component, props);
+        }
+      }]);
+
+      return Scroll;
+    }(React.Component);
+
+    var _initialiseProps = function _initialiseProps() {
+      var _this2 = this;
+
+      this.scrollTo = function (to, props) {
+        scroller.scrollTo(to, _extends({}, _this2.state, props));
+      };
+
+      this.handleClick = function (event) {
 
         /*
          * give the posibility to override onClick
          */
 
-        if (this.props.onClick) {
-          this.props.onClick(event);
+        if (_this2.props.onClick) {
+          _this2.props.onClick(event);
         }
 
         /*
@@ -70,41 +169,39 @@ const Helpers = {
         /*
          * do the magic!
          */
-        this.scrollTo(this.props.to, this.props);
+        _this2.scrollTo(_this2.props.to, _this2.props);
+      };
 
-      }
-
-
-      stateHandler = () => {
-        if (scroller.getActiveLink() !== this.props.to) {
-          if (this.state !== null && this.state.active && this.props.onSetInactive) {
-            this.props.onSetInactive();
+      this.stateHandler = function () {
+        if (scroller.getActiveLink() !== _this2.props.to) {
+          if (_this2.state !== null && _this2.state.active && _this2.props.onSetInactive) {
+            _this2.props.onSetInactive();
           }
-          this.setState({ active: false });
+          _this2.setState({ active: false });
         }
-      }
+      };
 
-      spyHandler = (y) => {
+      this.spyHandler = function (y) {
 
-        let scrollSpyContainer = this.getScrollSpyContainer();
+        var scrollSpyContainer = _this2.getScrollSpyContainer();
 
         if (scrollHash.isMounted() && !scrollHash.isInitialized()) {
           return;
         }
 
-        let to = this.props.to;
-        let scrollX = this.props.scrollX;
-        let x = y;
-        let element = null;
-        let elemTopBound = 0;
-        let elemBottomBound = 0;
-        let containerTop = 0;
-        let elemLeftBound = 0;
-        let elemRightBound = 0;
-        let containerLeft = 0;
+        var to = _this2.props.to;
+        var scrollX = _this2.props.scrollX;
+        var x = y;
+        var element = null;
+        var elemTopBound = 0;
+        var elemBottomBound = 0;
+        var containerTop = 0;
+        var elemLeftBound = 0;
+        var elemRightBound = 0;
+        var containerLeft = 0;
 
         if (scrollSpyContainer.getBoundingClientRect) {
-          let containerCords = scrollSpyContainer.getBoundingClientRect();
+          var containerCords = scrollSpyContainer.getBoundingClientRect();
           if (scrollX) {
             containerLeft = containerCords.left;
           } else {
@@ -112,43 +209,45 @@ const Helpers = {
           }
         }
 
-        if (!element || this.props.isDynamic) {
+        if (!element || _this2.props.isDynamic) {
           element = scroller.get(to);
-          if (!element) { return; }
+          if (!element) {
+            return;
+          }
 
-          let cords = element.getBoundingClientRect();
+          var cords = element.getBoundingClientRect();
           if (scrollX) {
-            elemLeftBound = (cords.left- containerLeft + x);
+            elemLeftBound = cords.left - containerLeft + x;
             elemRightBound = elemLeftBound + cords.width;
           } else {
-            elemTopBound = (cords.top - containerTop + y);
+            elemTopBound = cords.top - containerTop + y;
             elemBottomBound = elemTopBound + cords.height;
           }
         }
 
         if (scrollX) {
-          let offsetX = x - this.props.offset;
-          let isInside = (offsetX >= Math.floor(elemLeftBound) && offsetX < Math.floor(elemRightBound));
-          let isOutside = (offsetX < Math.floor(elemLeftBound) || offsetX >= Math.floor(elemRightBound));
+          var offsetX = x - _this2.props.offset;
+          var _isInside = offsetX >= Math.floor(elemLeftBound) && offsetX < Math.floor(elemRightBound);
+          var _isOutside = offsetX < Math.floor(elemLeftBound) || offsetX >= Math.floor(elemRightBound);
         } else {
-          let offsetY = y - this.props.offset;
-          let isInside = (offsetY >= Math.floor(elemTopBound) && offsetY < Math.floor(elemBottomBound));
-          let isOutside = (offsetY < Math.floor(elemTopBound) || offsetY >= Math.floor(elemBottomBound));
+          var offsetY = y - _this2.props.offset;
+          var _isInside2 = offsetY >= Math.floor(elemTopBound) && offsetY < Math.floor(elemBottomBound);
+          var _isOutside2 = offsetY < Math.floor(elemTopBound) || offsetY >= Math.floor(elemBottomBound);
         }
-        let activeLink = scroller.getActiveLink();
+        var activeLink = scroller.getActiveLink();
 
         if (isOutside) {
           if (to === activeLink) {
             scroller.setActiveLink(void 0);
           }
 
-          if (this.props.hashSpy && scrollHash.getHash() === to) {
+          if (_this2.props.hashSpy && scrollHash.getHash() === to) {
             scrollHash.changeHash();
           }
 
-          if (this.props.spy && this.state.active) {
-            this.setState({ active: false });
-            this.props.onSetInactive && this.props.onSetInactive();
+          if (_this2.props.spy && _this2.state.active) {
+            _this2.setState({ active: false });
+            _this2.props.onSetInactive && _this2.props.onSetInactive();
           }
 
           return scrollSpy.updateStates();
@@ -157,84 +256,18 @@ const Helpers = {
         if (isInside && activeLink !== to) {
           scroller.setActiveLink(to);
 
-          this.props.hashSpy && scrollHash.changeHash(to);
+          _this2.props.hashSpy && scrollHash.changeHash(to);
 
-          if (this.props.spy) {
-            this.setState({ active: true });
-            this.props.onSetActive && this.props.onSetActive(to);
+          if (_this2.props.spy) {
+            _this2.setState({ active: true });
+            _this2.props.onSetActive && _this2.props.onSetActive(to);
           }
           return scrollSpy.updateStates();
         }
-      }
-
-      getScrollSpyContainer() {
-        let containerId = this.props.containerId;
-        let container = this.props.container;
-
-        if (containerId) {
-          return document.getElementById(containerId);
-        }
-
-        if (container && container.nodeType) {
-          return container;
-        }
-
-        return document;
-      }
-
-      componentDidMount() {
-        if (this.props.spy || this.props.hashSpy) {
-          let scrollSpyContainer = this.getScrollSpyContainer();
-
-          if (!scrollSpy.isMounted(scrollSpyContainer)) {
-            scrollSpy.mount(scrollSpyContainer);
-          }
-
-          if (this.props.hashSpy) {
-            if (!scrollHash.isMounted()) {
-              scrollHash.mount(scroller);
-            }
-            scrollHash.mapContainer(this.props.to, scrollSpyContainer);
-          }
-
-          if (this.props.spy) {
-            scrollSpy.addStateHandler(this.stateHandler);
-          }
-
-          scrollSpy.addSpyHandler(this.spyHandler, scrollSpyContainer);
-
-          this.setState({
-            container: scrollSpyContainer
-          });
-
-        }
-      }
-      componentWillUnmount() {
-        scrollSpy.unmount(this.stateHandler, this.spyHandler);
-      }
-      render() {
-        var className = "";
-
-        if (this.state && this.state.active) {
-          className = ((this.props.className || "") + " " + (this.props.activeClass || "active")).trim();
-        } else {
-          className = this.props.className;
-        }
-
-        var props = Object.assign({}, this.props);
-
-        for (var prop in protoTypes) {
-          if (props.hasOwnProperty(prop)) {
-            delete props[prop];
-          }
-        }
-
-        props.className = className;
-        props.onClick = this.handleClick;
-
-        return React.createElement(Component, props);
-      }
+      };
     };
+
+    ;
 
     Scroll.propTypes = protoTypes;
 
@@ -242,49 +275,68 @@ const Helpers = {
 
     return Scroll;
   },
-
-  Element(Component) {
+  Element: function Element(Component) {
 
     console.warn("Helpers.Element is deprecated since v1.7.0");
 
-    class Element extends React.Component {
+    var Element = function (_React$Component2) {
+      _inherits(Element, _React$Component2);
 
-      constructor(props) {
-        super(props);
-        this.childBindings = {
+      function Element(props) {
+        _classCallCheck(this, Element);
+
+        var _this3 = _possibleConstructorReturn(this, (Element.__proto__ || Object.getPrototypeOf(Element)).call(this, props));
+
+        _this3.childBindings = {
           domNode: null
         };
+        return _this3;
       }
 
-      componentDidMount() {
-        if (typeof window === 'undefined') {
-          return false;
+      _createClass(Element, [{
+        key: 'componentDidMount',
+        value: function componentDidMount() {
+          if (typeof window === 'undefined') {
+            return false;
+          }
+          this.registerElems(this.props.name);
         }
-        this.registerElems(this.props.name);
-      }
-      componentWillReceiveProps(nextProps) {
-        if (this.props.name !== nextProps.name) {
-          this.registerElems(nextProps.name);
+      }, {
+        key: 'componentWillReceiveProps',
+        value: function componentWillReceiveProps(nextProps) {
+          if (this.props.name !== nextProps.name) {
+            this.registerElems(nextProps.name);
+          }
         }
-      }
-      componentWillUnmount() {
-        if (typeof window === 'undefined') {
-          return false;
+      }, {
+        key: 'componentWillUnmount',
+        value: function componentWillUnmount() {
+          if (typeof window === 'undefined') {
+            return false;
+          }
+          defaultScroller.unregister(this.props.name);
         }
-        defaultScroller.unregister(this.props.name);
-      }
-      registerElems(name) {
-        defaultScroller.register(name, this.childBindings.domNode);
-      }
-      render() {
-        return React.createElement(Component, Object.assign({}, this.props, { parentBindings: this.childBindings }));
-      }
-    };
+      }, {
+        key: 'registerElems',
+        value: function registerElems(name) {
+          defaultScroller.register(name, this.childBindings.domNode);
+        }
+      }, {
+        key: 'render',
+        value: function render() {
+          return React.createElement(Component, _extends({}, this.props, { parentBindings: this.childBindings }));
+        }
+      }]);
+
+      return Element;
+    }(React.Component);
+
+    ;
 
     Element.propTypes = {
       name: PropTypes.string,
       id: PropTypes.string
-    }
+    };
 
     return Element;
   }

@@ -1,13 +1,24 @@
-import { addPassiveEventListener } from './passive-event-listeners';
-import utils from './utils';
+'use strict';
 
-const scrollHash = {
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _passiveEventListeners = require('./passive-event-listeners');
+
+var _utils = require('./utils');
+
+var _utils2 = _interopRequireDefault(_utils);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var scrollHash = {
   mountFlag: false,
   initialized: false,
   scroller: null,
   containers: {},
 
-  mount(scroller) {
+  mount: function mount(scroller) {
     this.scroller = scroller;
 
     this.handleHashChange = this.handleHashChange.bind(this);
@@ -16,59 +27,52 @@ const scrollHash = {
     this.initStateFromHash();
     this.mountFlag = true;
   },
-
-  mapContainer(to, container) {
+  mapContainer: function mapContainer(to, container) {
     this.containers[to] = container;
   },
-
-  isMounted() {
+  isMounted: function isMounted() {
     return this.mountFlag;
   },
-
-  isInitialized() {
+  isInitialized: function isInitialized() {
     return this.initialized;
   },
+  initStateFromHash: function initStateFromHash() {
+    var _this = this;
 
-  initStateFromHash() {
-    let hash = this.getHash();
+    var hash = this.getHash();
     if (hash) {
-      window.setTimeout(() => {
-        this.scrollTo(hash, true);
-        this.initialized = true;
+      window.setTimeout(function () {
+        _this.scrollTo(hash, true);
+        _this.initialized = true;
       }, 10);
     } else {
       this.initialized = true;
     }
   },
-
-  scrollTo(to, isInit) {
-    let scroller = this.scroller;
-    let element = scroller.get(to);
+  scrollTo: function scrollTo(to, isInit) {
+    var scroller = this.scroller;
+    var element = scroller.get(to);
     if (element && (isInit || to !== scroller.getActiveLink())) {
-      let container = this.containers[to] || document;
-      scroller.scrollTo(to, { container });
+      var container = this.containers[to] || document;
+      scroller.scrollTo(to, { container: container });
     }
   },
-
-  getHash() {
-    return utils.getHash();
+  getHash: function getHash() {
+    return _utils2.default.getHash();
   },
-
-  changeHash(to) {
+  changeHash: function changeHash(to) {
     if (this.isInitialized()) {
-      utils.pushHash(to);
+      _utils2.default.pushHash(to);
     }
   },
-
-  handleHashChange() {
+  handleHashChange: function handleHashChange() {
     this.scrollTo(this.getHash());
   },
-
-  unmount() {
+  unmount: function unmount() {
     this.scroller = null;
     this.containers = null;
     window.removeEventListener('hashchange', this.handleHashChange);
-  },
+  }
 };
 
-export default scrollHash;
+exports.default = scrollHash;
